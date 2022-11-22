@@ -1,6 +1,6 @@
 #config
-
 require 'colorize'
+require 'io/console'
 game_state = true
 randomNumber = rand(1..100)
 guesses = 0
@@ -18,7 +18,18 @@ while game_state
         guess = guess.to_i
         if guess == randomNumber
             puts "You win!".colorize(:green)
-            game_state = false
+            puts "You guessed the number in #{guesses} guesses".colorize(:green)
+            puts "Dou you want to play again? (y/n)".colorize(:yellow)
+            answer = gets.chomp
+            if answer == "y"
+                randomNumber = rand(1..100)
+                guesses = 0
+                
+                $stdout.clear_screen
+            else
+                puts "You have exited the game".colorize(:red)
+                game_state = false
+            end
         elsif guess > randomNumber
             puts "Too high!".colorize(:red)
             guesses += 1
