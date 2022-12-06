@@ -2,11 +2,14 @@ require 'colorize'
 require 'io/console'
 require 'json'
 require 'table_print'
+require 'curses'
 #functions
 
 
 Score = Struct.new(:name, :guesses, :date)
 
+
+#scoreboard show
 def scoreboardShow(scoreboard)
     if scoreboard != []
         puts "SCOREBOARD".colorize(:yellow)
@@ -15,26 +18,10 @@ def scoreboardShow(scoreboard)
         
     end
     scoreboardSave(scoreboard)
+    puts "Press Enter to continue".colorize(:yellow)
+    a = gets()
     end
 
-
-#show scoreboard
-# def scoreboardShow(scoreboard)
-#     #if scoreboard not empty, show scoreboard
-#     if scoreboard != {}
-    
-#     #sorts the scoreboard by value
-#         scoreboard = scoreboard.sort_by {|k, v| v}
-#     #prints the scoreboard
-
-#         puts "Scoreboard:".colorize(:green)
-#         puts "Nickname  |   Score   |   Date ".colorize(:green)
-#         scoreboard.each do |key, value|
-#             puts "#{key}    |   #{value[0]}  |   #{value[1]}".colorize(:green)
-#         end
-#         scoreboardSave(scoreboard)
-#     end
-# end
 
 
 #scoreboard add score
@@ -52,9 +39,8 @@ def scoreboardAdd(scoreboard, guesses)
 end
 
 #end functions
-def endGame(scoreboard)
+def endGame()
     puts "You have exited the game".colorize(:red)
-    scoreboardShow(scoreboard)
     puts "Thanks for playing!".colorize(:green)
     exit
 end
@@ -103,13 +89,15 @@ def checkIfBestScoreBeaten(scoreboard, guesses)
     return false
 end
 
+#game function (main game loop)
+def game()
 #config
 game_state = true
 randomNumber = rand(1..100)
 guesses = 0
 scoreboard = scoreboardLoad()
-
-#main game loop
+$stdout.clear_screen
+# game loop
 while game_state
     puts "Guess a number between 1 and 100".colorize(:yellow)
     guess = gets.chomp
@@ -133,7 +121,7 @@ while game_state
                 guesses = 0
                 $stdout.clear_screen
             else
-                endGame(scoreboard)
+                break
             end
         elsif guess > randomNumber
             puts "Too high!".colorize(:red)
@@ -144,3 +132,61 @@ while game_state
         end
     end
 end
+end
+
+def show_menu()
+#menu
+Curses.init_screen
+Curses.cbreak
+Curses.noecho
+Curses.stdscr.keypad(true)
+
+at_exit do
+    Curses.close_screen
+end
+
+
+
+menu = Curses::Menu.new([
+    Curses::Item.new("1","Play"),
+    Curses::Item.new("2","Scoreboard"),
+    Curses::Item.new("3","Exit")
+])
+
+
+menu.post
+
+while ch = Curses.getch
+    begin
+      case ch
+      when Curses::KEY_UP, ?k
+        menu.up_item
+      when Curses::KEY_DOWN, ?j
+        menu.down_item
+      when 10, ?\n, ?\r
+        break
+      end
+    rescue Curses::RequestDeniedError
+    end
+  end
+choice = menu.current_item.name
+menu.unpost
+Curses.close_screen
+return choice
+end
+
+#main
+puts "Welcome to the number guessing game!".colorize(:green)
+sleep(1)
+while true
+choice = show_menu()
+case choice
+when "1"
+    game()
+when "2"
+    scoreboardShow(scoreboardLoad())
+when "3"
+    endGame()
+end
+end
+
