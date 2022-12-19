@@ -1,6 +1,5 @@
-
- 
 # Gra w Zgadywanie 
+
 
 ## Trudność: zależnie od poziomu zadania. 
 
